@@ -1,0 +1,214 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@400;600;700&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 1920px;
+  height: 60px;
+  overflow: hidden;
+  background: transparent;
+}
+
+#scoreboard {
+  width: 100%;
+  height: 60px;
+  background: rgba(10, 10, 10, 0.88);
+  border-bottom: 2px solid #FFD700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Oswald', sans-serif;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Linha decorativa dourada no topo */
+#scoreboard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #FFD700, #FFA500, #FFD700, transparent);
+}
+
+.matches-track {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  white-space: nowrap;
+  animation: scroll-track 0s linear infinite;
+}
+
+.matches-track.no-scroll {
+  animation: none;
+  justify-content: center;
+}
+
+@keyframes scroll-track {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.match-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 36px;
+  height: 60px;
+  border-right: 1px solid rgba(255, 215, 0, 0.2);
+  flex-shrink: 0;
+}
+
+.match-card:last-child {
+  border-right: none;
+}
+
+/* Badge de status */
+.status-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 3px;
+  min-width: 80px;
+  justify-content: center;
+}
+
+.status-badge.live {
+  background: rgba(230, 57, 70, 0.2);
+  color: #E63946;
+  border: 1px solid rgba(230, 57, 70, 0.5);
+}
+
+.status-badge.live .dot {
+  width: 7px;
+  height: 7px;
+  background: #E63946;
+  border-radius: 50%;
+  animation: pulse 1.2s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.4; transform: scale(0.7); }
+}
+
+.status-badge.finished {
+  background: rgba(100, 100, 100, 0.2);
+  color: #aaa;
+  border: 1px solid rgba(100, 100, 100, 0.3);
+}
+
+.status-badge.scheduled {
+  background: rgba(255, 215, 0, 0.1);
+  color: #FFD700;
+  border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+/* Times */
+.team {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.team-flag {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.team-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 20px;
+  letter-spacing: 1px;
+  color: #fff;
+  min-width: 100px;
+}
+
+.team-name.home {
+  text-align: right;
+}
+
+.team-name.away {
+  text-align: left;
+}
+
+/* Placar */
+.score-block {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.score {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px;
+  color: #FFD700;
+  min-width: 22px;
+  text-align: center;
+  line-height: 1;
+}
+
+.score-sep {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  color: rgba(255, 215, 0, 0.5);
+  padding: 0 2px;
+}
+
+/* Tempo */
+.match-time {
+  font-family: 'Oswald', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #ccc;
+  min-width: 48px;
+  text-align: center;
+}
+
+.match-time.live-time {
+  color: #E63946;
+}
+
+/* Nenhum jogo */
+.no-matches {
+  font-family: 'Oswald', sans-serif;
+  font-size: 15px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.4);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+/* Logo Copa */
+.copa-logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 13px;
+  letter-spacing: 2px;
+  color: #FFD700;
+  padding: 0 20px 0 28px;
+  border-right: 1px solid rgba(255, 215, 0, 0.3);
+  flex-shrink: 0;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.copa-logo span {
+  display: block;
+  font-size: 9px;
+  letter-spacing: 3px;
+  color: rgba(255, 215, 0, 0.6);
+}
