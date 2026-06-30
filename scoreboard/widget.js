@@ -1,5 +1,14 @@
-const ESPN_URL = 'https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard';
+const ESPN_URL  = 'https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard';
 const REFRESH_MS = 30_000;
+const RETRY_MS   = 10_000;
+
+/* config.js populates window.WCW before this script runs */
+const T = window.WCW?.T || {
+  live: 'AO VIVO', finished: 'ENCERRADO', soon: 'EM BREVE',
+  noMatches: 'Sem jogos no momento', loading: 'Aguardando dados...',
+  competition: '⚽ COPA DO MUNDO · FIFA 2026',
+  locale: 'pt-BR', tz: 'America/Sao_Paulo',
+};
 
 const ISO_CODES = {
   'Argentina': 'ar', 'Australia': 'au', 'Belgium': 'be', 'Brazil': 'br',
@@ -20,62 +29,6 @@ const ISO_CODES = {
   'United Arab Emirates': 'ae', 'Paraguay': 'py', 'Bolivia': 'bo',
 };
 
-function flagImgSrc(teamObj) {
-  if (teamObj?.logo) return teamObj.logo;
-  const code = ISO_CODES[teamObj?.displayName || teamObj?.name || ''];
-  return code ? `https://flagcdn.com/w40/${code}.png` : '';
-}
-
-function formatScheduledTime(isoDate) {
-  const date = new Date(isoDate);
-  return date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' });
-}
-
-function parseMatches(data) {
-  const events = data.events || [];
-  return events.map(event => {
-    const comp = event.competitions?.[0];
-    if (!comp) return null;
-
-    const home = comp.competitors?.find(c => c.homeAway === 'home');
-    const away = comp.competitors?.find(c => c.homeAway === 'away');
-    const status = event.status;
-    const stateDetail = status?.type?.state || 'pre';
-    const stateDesc = status?.type?.shortDetail || '';
-    const displayClock = status?.displayClock || '';
-    const period = status?.period || 0;
-
-    let matchStatus;
-    if (stateDetail === 'in') {
-      matchStatus = 'live';
-    } else if (stateDetail === 'post') {
-      matchStatus = 'finished';
-    } else {
-      matchStatus = 'scheduled';
-    }
-
-    let timeDisplay = '';
-    if (matchStatus === 'live') {
-      timeDisplay = displayClock ? `${displayClock}'` : stateDesc;
-      if (period === 2 && displayClock) timeDisplay = `45+${displayClock}'`.replace('45+45+', '45+');
-    } else if (matchStatus === 'scheduled') {
-      timeDisplay = formatScheduledTime(event.date);
-    }
-
-    return {
-      id: event.id,
-      homeTeam: home?.team?.displayName || home?.team?.name || 'Time A',
-      awayTeam: away?.team?.displayName || away?.team?.name || 'Time B',
-      homeFlagSrc: flagImgSrc(home?.team),
-      awayFlagSrc: flagImgSrc(away?.team),
-      homeScore: matchStatus !== 'scheduled' ? (home?.score ?? '0') : '-',
-      awayScore: matchStatus !== 'scheduled' ? (away?.score ?? '0') : '-',
-      status: matchStatus,
-      timeDisplay,
-    };
-  }).filter(Boolean);
-}
-
 const ABBREV_OVERRIDES = {
   'United States': 'USA', 'South Korea': 'COR', 'Saudi Arabia': 'SAU',
   'Costa Rica': 'CRC', 'New Zealand': 'NZL', 'Ivory Coast': 'CIV',
@@ -87,20 +40,69 @@ function teamAbbrev(name) {
   return ABBREV_OVERRIDES[name] || name.toUpperCase().slice(0, 3);
 }
 
+function flagImgSrc(teamObj) {
+  if (teamObj?.logo) return teamObj.logo;
+  const code = ISO_CODES[teamObj?.displayName || teamObj?.name || ''];
+  return code ? `https://flagcdn.com/w40/${code}.png` : '';
+}
+
 function flagTag(src, name) {
   return src
     ? `<img class="team-flag-img" src="${src}" alt="${name}" />`
-    : `<span class="team-flag-placeholder">${name.slice(0,2)}</span>`;
+    : `<span class="team-flag-placeholder">${name.slice(0, 2)}</span>`;
+}
+
+function formatTime(isoDate) {
+  return new Date(isoDate).toLocaleTimeString(T.locale, {
+    hour: '2-digit', minute: '2-digit', timeZone: T.tz,
+  });
+}
+
+function parseMatches(data) {
+  return (data.events || []).map(event => {
+    const comp = event.competitions?.[0];
+    if (!comp) return null;
+
+    const home        = comp.competitors?.find(c => c.homeAway === 'home');
+    const away        = comp.competitors?.find(c => c.homeAway === 'away');
+    const stateDetail = event.status?.type?.state || 'pre';
+    const displayClock = event.status?.displayClock || '';
+    const period      = event.status?.period || 0;
+
+    let matchStatus;
+    if (stateDetail === 'in')   matchStatus = 'live';
+    else if (stateDetail === 'post') matchStatus = 'finished';
+    else matchStatus = 'scheduled';
+
+    let timeDisplay = '';
+    if (matchStatus === 'live') {
+      timeDisplay = displayClock ? `${displayClock}'` : '';
+      if (period === 2 && displayClock) timeDisplay = `45+${displayClock}'`.replace('45+45+', '45+');
+    } else if (matchStatus === 'scheduled') {
+      timeDisplay = formatTime(event.date);
+    }
+
+    return {
+      homeTeam: home?.team?.displayName || 'Time A',
+      awayTeam: away?.team?.displayName || 'Time B',
+      homeFlagSrc: flagImgSrc(home?.team),
+      awayFlagSrc: flagImgSrc(away?.team),
+      homeScore: matchStatus !== 'scheduled' ? (home?.score ?? '0') : '-',
+      awayScore: matchStatus !== 'scheduled' ? (away?.score ?? '0') : '-',
+      status: matchStatus,
+      timeDisplay,
+    };
+  }).filter(Boolean);
 }
 
 function buildMatchCard(match) {
   let statusHTML;
   if (match.status === 'live') {
-    statusHTML = `<div class="status-badge live"><span class="dot"></span>AO VIVO</div>`;
+    statusHTML = `<div class="status-badge live"><span class="dot"></span>${T.live}</div>`;
   } else if (match.status === 'finished') {
-    statusHTML = `<div class="status-badge finished">ENCERRADO</div>`;
+    statusHTML = `<div class="status-badge finished">${T.finished}</div>`;
   } else {
-    statusHTML = `<div class="status-badge scheduled">EM BREVE</div>`;
+    statusHTML = `<div class="status-badge scheduled">${T.soon}</div>`;
   }
 
   const timeClass = match.status === 'live' ? 'match-time live-time' : 'match-time';
@@ -122,33 +124,33 @@ function buildMatchCard(match) {
         ${flagTag(match.awayFlagSrc, match.awayTeam)}
       </div>
       <span class="${timeClass}">${match.timeDisplay}</span>
-    </div>
-  `;
+    </div>`;
+}
+
+let retryTimer = null;
+
+function scheduleRetry() {
+  clearTimeout(retryTimer);
+  retryTimer = setTimeout(fetchMatches, RETRY_MS);
 }
 
 function renderWidget(matches) {
   const board = document.getElementById('scoreboard');
+  const logoHTML = `<div class="copa-logo">${T.competition.split('·')[0].trim()}<span>${T.competition.split('·')[1]?.trim() || 'FIFA 2026'}</span></div>`;
 
   if (!matches || matches.length === 0) {
-    board.innerHTML = `
-      <div class="copa-logo">⚽ COPA DO MUNDO<span>FIFA 2026</span></div>
-      <span class="no-matches">Sem jogos no momento</span>
-    `;
+    board.innerHTML = `${logoHTML}<span class="no-matches">${T.noMatches}</span>`;
     return;
   }
 
   const cards = matches.map(buildMatchCard).join('');
-  const logoHTML = `<div class="copa-logo">⚽ COPA DO MUNDO<span>FIFA 2026</span></div>`;
 
   if (matches.length === 1) {
     board.innerHTML = `${logoHTML}<div class="matches-track no-scroll">${cards}</div>`;
     return;
   }
 
-  /* Para múltiplos jogos: duplicar cards para scroll infinito */
-  const totalWidth = matches.length * 400;
-  const trackHTML = `<div class="matches-track" style="animation-duration:${matches.length * 8}s">${cards}${cards}</div>`;
-  board.innerHTML = `${logoHTML}${trackHTML}`;
+  board.innerHTML = `${logoHTML}<div class="matches-track" style="animation-duration:${matches.length * 8}s">${cards}${cards}</div>`;
 }
 
 async function fetchMatches() {
@@ -156,15 +158,16 @@ async function fetchMatches() {
     const res = await fetch(ESPN_URL, { cache: 'no-store' });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
-    const matches = parseMatches(data);
-    renderWidget(matches);
+    renderWidget(parseMatches(data));
   } catch (err) {
-    console.error('[Copa Widget] Erro ao buscar dados:', err);
+    console.error('[Scoreboard] Fetch error:', err);
+    /* Só mostra mensagem de erro se o board estiver vazio */
     const board = document.getElementById('scoreboard');
-    board.innerHTML = `
-      <div class="copa-logo">⚽ COPA DO MUNDO<span>FIFA 2026</span></div>
-      <span class="no-matches">Aguardando dados...</span>
-    `;
+    if (!board.querySelector('.match-card')) {
+      const logoHTML = `<div class="copa-logo">${T.competition.split('·')[0].trim()}<span>${T.competition.split('·')[1]?.trim() || 'FIFA 2026'}</span></div>`;
+      board.innerHTML = `${logoHTML}<span class="no-matches">${T.loading}</span>`;
+    }
+    scheduleRetry();
   }
 }
 
