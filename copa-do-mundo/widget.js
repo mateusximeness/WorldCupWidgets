@@ -1,30 +1,29 @@
 const ESPN_URL = 'https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard';
 const REFRESH_MS = 30_000;
 
-const COUNTRY_FLAGS = {
-  'Argentina':   '🇦🇷', 'Australia':   '🇦🇺', 'Belgium':     '🇧🇪',
-  'Brazil':      '🇧🇷', 'Cameroon':    '🇨🇲', 'Canada':      '🇨🇦',
-  'Chile':       '🇨🇱', 'Colombia':    '🇨🇴', 'Costa Rica':  '🇨🇷',
-  'Croatia':     '🇭🇷', 'Denmark':     '🇩🇰', 'Ecuador':     '🇪🇨',
-  'England':     '🏴󠁧󠁢󠁥󠁮󠁧󠁿', 'France':      '🇫🇷', 'Germany':     '🇩🇪',
-  'Ghana':       '🇬🇭', 'IR Iran':     '🇮🇷', 'Iran':        '🇮🇷',
-  'Japan':       '🇯🇵', 'Mexico':      '🇲🇽', 'Morocco':     '🇲🇦',
-  'Netherlands': '🇳🇱', 'New Zealand': '🇳🇿', 'Nigeria':     '🇳🇬',
-  'Panama':      '🇵🇦', 'Peru':        '🇵🇪', 'Poland':      '🇵🇱',
-  'Portugal':    '🇵🇹', 'Qatar':       '🇶🇦', 'Saudi Arabia':'🇸🇦',
-  'Senegal':     '🇸🇳', 'Serbia':      '🇷🇸', 'South Korea': '🇰🇷',
-  'Spain':       '🇪🇸', 'Switzerland': '🇨🇭', 'Tunisia':     '🇹🇳',
-  'United States':'🇺🇸', 'Uruguay':    '🇺🇾', 'USA':         '🇺🇸',
-  'Wales':       '🏴󠁧󠁢󠁷󠁬󠁳󠁿', 'Austria':     '🇦🇹', 'Czech Republic':'🇨🇿',
-  'Hungary':     '🇭🇺', 'Romania':     '🇷🇴', 'Scotland':    '🏴󠁧󠁢󠁳󠁣󠁴󠁿',
-  'Slovakia':    '🇸🇰', 'Slovenia':    '🇸🇮', 'Turkey':      '🇹🇷',
-  'Ukraine':     '🇺🇦', 'Greece':      '🇬🇷', 'Egypt':       '🇪🇬',
-  'Algeria':     '🇩🇿', 'Italy':       '🇮🇹', 'Sweden':      '🇸🇪',
-  'Norway':      '🇳🇴', 'Finland':     '🇫🇮', 'Iceland':     '🇮🇸',
+const ISO_CODES = {
+  'Argentina': 'ar', 'Australia': 'au', 'Belgium': 'be', 'Brazil': 'br',
+  'Cameroon': 'cm', 'Canada': 'ca', 'Chile': 'cl', 'Colombia': 'co',
+  'Costa Rica': 'cr', 'Croatia': 'hr', 'Denmark': 'dk', 'Ecuador': 'ec',
+  'England': 'gb-eng', 'France': 'fr', 'Germany': 'de', 'Ghana': 'gh',
+  'IR Iran': 'ir', 'Iran': 'ir', 'Japan': 'jp', 'Mexico': 'mx',
+  'Morocco': 'ma', 'Netherlands': 'nl', 'New Zealand': 'nz', 'Nigeria': 'ng',
+  'Panama': 'pa', 'Peru': 'pe', 'Poland': 'pl', 'Portugal': 'pt',
+  'Qatar': 'qa', 'Saudi Arabia': 'sa', 'Senegal': 'sn', 'Serbia': 'rs',
+  'South Korea': 'kr', 'Spain': 'es', 'Switzerland': 'ch', 'Tunisia': 'tn',
+  'United States': 'us', 'USA': 'us', 'Uruguay': 'uy', 'Wales': 'gb-wls',
+  'Austria': 'at', 'Czech Republic': 'cz', 'Hungary': 'hu', 'Romania': 'ro',
+  'Scotland': 'gb-sct', 'Slovakia': 'sk', 'Slovenia': 'si', 'Turkey': 'tr',
+  'Ukraine': 'ua', 'Greece': 'gr', 'Egypt': 'eg', 'Algeria': 'dz',
+  'Italy': 'it', 'Sweden': 'se', 'Norway': 'no', 'Finland': 'fi',
+  'Iceland': 'is', 'Ivory Coast': 'ci', "Côte d'Ivoire": 'ci',
+  'United Arab Emirates': 'ae', 'Paraguay': 'py', 'Bolivia': 'bo',
 };
 
-function getFlag(teamName) {
-  return COUNTRY_FLAGS[teamName] || '🏳️';
+function flagImgSrc(teamObj) {
+  if (teamObj?.logo) return teamObj.logo;
+  const code = ISO_CODES[teamObj?.displayName || teamObj?.name || ''];
+  return code ? `https://flagcdn.com/w40/${code}.png` : '';
 }
 
 function formatScheduledTime(isoDate) {
@@ -67,6 +66,8 @@ function parseMatches(data) {
       id: event.id,
       homeTeam: home?.team?.displayName || home?.team?.name || 'Time A',
       awayTeam: away?.team?.displayName || away?.team?.name || 'Time B',
+      homeFlagSrc: flagImgSrc(home?.team),
+      awayFlagSrc: flagImgSrc(away?.team),
       homeScore: matchStatus !== 'scheduled' ? (home?.score ?? '0') : '-',
       awayScore: matchStatus !== 'scheduled' ? (away?.score ?? '0') : '-',
       status: matchStatus,
@@ -75,13 +76,24 @@ function parseMatches(data) {
   }).filter(Boolean);
 }
 
+const ABBREV_OVERRIDES = {
+  'United States': 'USA', 'South Korea': 'COR', 'Saudi Arabia': 'SAU',
+  'Costa Rica': 'CRC', 'New Zealand': 'NZL', 'Ivory Coast': 'CIV',
+  "Côte d'Ivoire": 'CIV', 'Netherlands': 'HOL', 'Czech Republic': 'CZE',
+  'United Arab Emirates': 'EAU',
+};
+
+function teamAbbrev(name) {
+  return ABBREV_OVERRIDES[name] || name.toUpperCase().slice(0, 3);
+}
+
+function flagTag(src, name) {
+  return src
+    ? `<img class="team-flag-img" src="${src}" alt="${name}" />`
+    : `<span class="team-flag-placeholder">${name.slice(0,2)}</span>`;
+}
+
 function buildMatchCard(match) {
-  const homeFlag = getFlag(match.homeTeam);
-  const awayFlag = getFlag(match.awayTeam);
-
-  const homeAbbrev = match.homeTeam.toUpperCase().slice(0, 3);
-  const awayAbbrev = match.awayTeam.toUpperCase().slice(0, 3);
-
   let statusHTML;
   if (match.status === 'live') {
     statusHTML = `<div class="status-badge live"><span class="dot"></span>AO VIVO</div>`;
@@ -97,8 +109,8 @@ function buildMatchCard(match) {
     <div class="match-card">
       ${statusHTML}
       <div class="team">
-        <span class="team-flag">${homeFlag}</span>
-        <span class="team-name home">${homeAbbrev}</span>
+        ${flagTag(match.homeFlagSrc, match.homeTeam)}
+        <span class="team-name home">${teamAbbrev(match.homeTeam)}</span>
       </div>
       <div class="score-block">
         <span class="score">${match.homeScore}</span>
@@ -106,8 +118,8 @@ function buildMatchCard(match) {
         <span class="score">${match.awayScore}</span>
       </div>
       <div class="team">
-        <span class="team-name away">${awayAbbrev}</span>
-        <span class="team-flag">${awayFlag}</span>
+        <span class="team-name away">${teamAbbrev(match.awayTeam)}</span>
+        ${flagTag(match.awayFlagSrc, match.awayTeam)}
       </div>
       <span class="${timeClass}">${match.timeDisplay}</span>
     </div>

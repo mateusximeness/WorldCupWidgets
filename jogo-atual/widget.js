@@ -2,32 +2,35 @@ const SCOREBOARD_URL = 'https://site.api.espn.com/apis/site/v2/sports/soccer/fif
 const SUMMARY_URL    = id => `https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/summary?event=${id}`;
 const REFRESH_MS = 30_000;
 
-const FLAGS = {
-  'Argentina':    '🇦🇷', 'Australia':    '🇦🇺', 'Belgium':      '🇧🇪',
-  'Brazil':       '🇧🇷', 'Cameroon':     '🇨🇲', 'Canada':       '🇨🇦',
-  'Chile':        '🇨🇱', 'Colombia':     '🇨🇴', 'Costa Rica':   '🇨🇷',
-  'Croatia':      '🇭🇷', 'Denmark':      '🇩🇰', 'Ecuador':      '🇪🇨',
-  'England':      '🏴󠁧󠁢󠁥󠁮󠁧󠁿', 'France':       '🇫🇷', 'Germany':      '🇩🇪',
-  'Ghana':        '🇬🇭', 'IR Iran':      '🇮🇷', 'Iran':         '🇮🇷',
-  'Japan':        '🇯🇵', 'Mexico':       '🇲🇽', 'Morocco':      '🇲🇦',
-  'Netherlands':  '🇳🇱', 'New Zealand':  '🇳🇿', 'Nigeria':      '🇳🇬',
-  'Panama':       '🇵🇦', 'Peru':         '🇵🇪', 'Poland':       '🇵🇱',
-  'Portugal':     '🇵🇹', 'Qatar':        '🇶🇦', 'Saudi Arabia': '🇸🇦',
-  'Senegal':      '🇸🇳', 'Serbia':       '🇷🇸', 'South Korea':  '🇰🇷',
-  'Spain':        '🇪🇸', 'Switzerland':  '🇨🇭', 'Tunisia':      '🇹🇳',
-  'United States':'🇺🇸', 'Uruguay':      '🇺🇾', 'USA':          '🇺🇸',
-  'Wales':        '🏴󠁧󠁢󠁷󠁬󠁳󠁿', 'Austria':      '🇦🇹', 'Czech Republic':'🇨🇿',
-  'Hungary':      '🇭🇺', 'Romania':      '🇷🇴', 'Scotland':     '🏴󠁧󠁢󠁳󠁣󠁴󠁿',
-  'Slovakia':     '🇸🇰', 'Slovenia':     '🇸🇮', 'Turkey':       '🇹🇷',
-  'Ukraine':      '🇺🇦', 'Greece':       '🇬🇷', 'Egypt':        '🇪🇬',
-  'Algeria':      '🇩🇿', 'Italy':        '🇮🇹', 'Sweden':       '🇸🇪',
-  'Norway':       '🇳🇴', 'Finland':      '🇫🇮', 'Iceland':      '🇮🇸',
-  'Morocco':      '🇲🇦', 'Ivory Coast':  '🇨🇮', 'Côte d\'Ivoire':'🇨🇮',
-  'Saudi Arabia': '🇸🇦', 'United Arab Emirates': '🇦🇪',
+/* ISO 3166-1 alpha-2 codes → flagcdn.com fallback quando a ESPN não tiver logo */
+const ISO_CODES = {
+  'Argentina': 'ar', 'Australia': 'au', 'Belgium': 'be', 'Brazil': 'br',
+  'Cameroon': 'cm', 'Canada': 'ca', 'Chile': 'cl', 'Colombia': 'co',
+  'Costa Rica': 'cr', 'Croatia': 'hr', 'Denmark': 'dk', 'Ecuador': 'ec',
+  'England': 'gb-eng', 'France': 'fr', 'Germany': 'de', 'Ghana': 'gh',
+  'IR Iran': 'ir', 'Iran': 'ir', 'Japan': 'jp', 'Mexico': 'mx',
+  'Morocco': 'ma', 'Netherlands': 'nl', 'New Zealand': 'nz', 'Nigeria': 'ng',
+  'Panama': 'pa', 'Peru': 'pe', 'Poland': 'pl', 'Portugal': 'pt',
+  'Qatar': 'qa', 'Saudi Arabia': 'sa', 'Senegal': 'sn', 'Serbia': 'rs',
+  'South Korea': 'kr', 'Spain': 'es', 'Switzerland': 'ch', 'Tunisia': 'tn',
+  'United States': 'us', 'USA': 'us', 'Uruguay': 'uy', 'Wales': 'gb-wls',
+  'Austria': 'at', 'Czech Republic': 'cz', 'Hungary': 'hu', 'Romania': 'ro',
+  'Scotland': 'gb-sct', 'Slovakia': 'sk', 'Slovenia': 'si', 'Turkey': 'tr',
+  'Ukraine': 'ua', 'Greece': 'gr', 'Egypt': 'eg', 'Algeria': 'dz',
+  'Italy': 'it', 'Sweden': 'se', 'Norway': 'no', 'Finland': 'fi',
+  'Iceland': 'is', 'Ivory Coast': 'ci', "Côte d'Ivoire": 'ci',
+  'United Arab Emirates': 'ae', 'Paraguay': 'py', 'Bolivia': 'bo',
+  'Venezuela': 've', 'Honduras': 'hn', 'El Salvador': 'sv', 'Jamaica': 'jm',
 };
 
-function flag(name) {
-  return FLAGS[name] || '🏳️';
+function flagImg(teamObj) {
+  /* Prioridade: logo direto da ESPN → flagcdn.com via código ISO */
+  const espnLogo = teamObj?.logo;
+  if (espnLogo) return `<img class="team-flag-img" src="${espnLogo}" alt="" />`;
+  const name = teamObj?.displayName || teamObj?.name || '';
+  const code = ISO_CODES[name];
+  if (code) return `<img class="team-flag-img" src="https://flagcdn.com/w80/${code}.png" alt="${name}" />`;
+  return `<span class="team-flag-placeholder">?</span>`;
 }
 
 function abbrev(name) {
@@ -156,8 +159,10 @@ async function refresh() {
     const state      = statusType?.state || 'pre';
     const clock      = event.status?.displayClock || '';
 
-    const homeName  = home?.team?.displayName || 'Time A';
-    const awayName  = away?.team?.displayName || 'Time B';
+    const homeTeam  = home?.team || {};
+    const awayTeam  = away?.team || {};
+    const homeName  = homeTeam.displayName || 'Time A';
+    const awayName  = awayTeam.displayName || 'Time B';
     const homeScore = state !== 'pre' ? (home?.score ?? '0') : '–';
     const awayScore = state !== 'pre' ? (away?.score ?? '0') : '–';
 
@@ -183,7 +188,7 @@ async function refresh() {
 
       <div class="scoreline">
         <div class="team-block">
-          <span class="team-flag">${flag(homeName)}</span>
+          ${flagImg(homeTeam)}
           <span class="team-name">${abbrev(homeName)}</span>
         </div>
 
@@ -197,7 +202,7 @@ async function refresh() {
         </div>
 
         <div class="team-block">
-          <span class="team-flag">${flag(awayName)}</span>
+          ${flagImg(awayTeam)}
           <span class="team-name">${abbrev(awayName)}</span>
         </div>
       </div>

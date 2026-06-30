@@ -112,10 +112,24 @@ html, body {
   flex: 1;
 }
 
-.team-flag {
-  font-size: 42px;
-  line-height: 1;
-  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.5));
+.team-flag-img {
+  width: 72px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+}
+
+.team-flag-placeholder {
+  width: 72px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.08);
+  border-radius: 4px;
+  color: #666;
+  font-size: 20px;
 }
 
 .team-name {
