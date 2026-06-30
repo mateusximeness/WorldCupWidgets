@@ -43,13 +43,54 @@ Se houver mais de um jogo simultâneo, os placares fazem scroll automático.
 
 ---
 
+### 🎯 Jogo Atual (`jogo-atual/`)
+
+Painel centralizado no topo da tela focado em UM jogo — auto-detecta o jogo ao vivo do Brasil (ou qualquer jogo ao vivo disponível).
+
+**Exibe:**
+- Bandeiras dos dois times
+- Placar em destaque + tempo de jogo
+- 🟥 Cartões vermelhos com nome do jogador
+- 🔄 Substituições (quem saiu → quem entrou)
+
+**Como adicionar no OBS:**
+
+1. No OBS, clique em `+` na lista de Fontes
+2. Escolha **Browser** (Navegador)
+3. Marque **Local File** e selecione:
+   ```
+   C:\dev\projects\live-widgets\jogo-atual\index.html
+   ```
+4. Defina as dimensões:
+   - **Largura:** 520
+   - **Altura:** 280
+5. Posicione a fonte no **topo centralizado** da cena
+
+**Resultado:**
+```
+         ┌──────────────────────────────────┐
+         │ ⚽ COPA DO MUNDO · FIFA 2026  🔴 AO VIVO │
+         │   🇧🇷          2 – 1          🇦🇷   │
+         │   BRA          45'           ARG   │
+         │ ─────────────────────────────────│
+         │ 🟥 23'  Militão                  │
+         │ 🔄 67'  Vini Jr → Endrick        │
+         └──────────────────────────────────┘
+```
+
+---
+
 ## Estrutura do projeto
 
 ```
 live-widgets/
 ├── README.md
 ├── copa-do-mundo/
-│   ├── index.html    ← aponte o OBS aqui
+│   ├── index.html    ← barra superior (todos os jogos)
+│   ├── style.css
+│   └── widget.js
+├── jogo-atual/
+│   ├── index.html    ← painel centralizado (um jogo)
 │   ├── style.css
 │   └── widget.js
 └── assets/           ← reservado para futuros widgets
