@@ -131,8 +131,8 @@ async function refresh() {
     const clock     = event.status?.displayClock || '';
     const homeTeam  = home?.team || {};
     const awayTeam  = away?.team || {};
-    const homeName  = homeTeam.displayName || 'Time A';
-    const awayName  = awayTeam.displayName || 'Time B';
+    const homeName  = homeTeam.displayName || 'Team A';
+    const awayName  = awayTeam.displayName || 'Team B';
     const homeScore = state !== 'pre' ? (home?.score ?? '0') : '–';
     const awayScore = state !== 'pre' ? (away?.score ?? '0') : '–';
 

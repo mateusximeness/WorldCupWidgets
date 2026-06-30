@@ -40,13 +40,13 @@
   const theme = THEMES[THEME_NAME] || THEMES.gold;
   const T     = TRANSLATIONS[LANG]  || TRANSLATIONS.pt;
 
-  /* Aplica o tema como CSS custom properties */
+  /* Apply theme as CSS custom properties */
   const root = document.documentElement;
   root.style.setProperty('--accent',        theme.accent);
   root.style.setProperty('--accent-dim',    theme.dim);
   root.style.setProperty('--accent-border', theme.border);
   root.style.setProperty('--accent-text',   theme.text);
 
-  /* Expõe globalmente para os widgets */
+  /* Expose globally for widgets */
   window.WCW = { T, LANG, THEME_NAME };
 })();

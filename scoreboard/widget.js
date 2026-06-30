@@ -83,8 +83,8 @@ function parseMatches(data) {
     }
 
     return {
-      homeTeam: home?.team?.displayName || 'Time A',
-      awayTeam: away?.team?.displayName || 'Time B',
+      homeTeam: home?.team?.displayName || 'Team A',
+      awayTeam: away?.team?.displayName || 'Team B',
       homeFlagSrc: flagImgSrc(home?.team),
       awayFlagSrc: flagImgSrc(away?.team),
       homeScore: matchStatus !== 'scheduled' ? (home?.score ?? '0') : '-',
@@ -161,7 +161,7 @@ async function fetchMatches() {
     renderWidget(parseMatches(data));
   } catch (err) {
     console.error('[Scoreboard] Fetch error:', err);
-    /* Só mostra mensagem de erro se o board estiver vazio */
+    /* Only show error message if the board has no content yet */
     const board = document.getElementById('scoreboard');
     if (!board.querySelector('.match-card')) {
       const logoHTML = `<div class="copa-logo">${T.competition.split('·')[0].trim()}<span>${T.competition.split('·')[1]?.trim() || 'FIFA 2026'}</span></div>`;
