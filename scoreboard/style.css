@@ -200,3 +200,97 @@ html, body {
   letter-spacing: 3px;
   color: var(--accent-text);
 }
+
+/* ── Goal notification ───────────────────────────────── */
+.goal-notification {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  width: 100%;
+  height: 60px;
+  animation: goal-enter 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes goal-enter {
+  from { opacity: 0; transform: scaleY(0.6); }
+  to   { opacity: 1; transform: scaleY(1); }
+}
+
+.goal-ball {
+  font-size: 30px;
+  line-height: 1;
+  animation: spin-ball 0.55s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin-ball {
+  0%   { transform: rotate(0deg)   translateY(0px); }
+  25%  { transform: rotate(90deg)  translateY(-5px); }
+  50%  { transform: rotate(180deg) translateY(0px); }
+  75%  { transform: rotate(270deg) translateY(-5px); }
+  100% { transform: rotate(360deg) translateY(0px); }
+}
+
+.goal-label {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 34px;
+  letter-spacing: 5px;
+  color: var(--accent);
+  text-shadow: 0 0 24px var(--accent), 0 0 8px var(--accent);
+  animation: goal-glow 0.8s ease-in-out infinite alternate;
+}
+
+@keyframes goal-glow {
+  from { text-shadow: 0 0 12px var(--accent); }
+  to   { text-shadow: 0 0 32px var(--accent), 0 0 8px #fff; }
+}
+
+.goal-divider {
+  width: 1px;
+  height: 32px;
+  background: var(--accent-border);
+  flex-shrink: 0;
+}
+
+.goal-team {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.goal-team .team-flag-img  { width: 32px; height: 22px; }
+.goal-team .team-flag-placeholder { width: 32px; height: 22px; font-size: 10px; }
+
+.goal-team-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  letter-spacing: 2px;
+  color: #fff;
+}
+
+.goal-scorer {
+  font-family: 'Oswald', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: #ddd;
+  letter-spacing: 0.5px;
+  max-width: 260px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.goal-score {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px;
+  letter-spacing: 3px;
+  color: var(--accent);
+}
+
+.goal-score .score-sep {
+  font-size: 20px;
+  color: var(--accent-border);
+  padding: 0 4px;
+}
